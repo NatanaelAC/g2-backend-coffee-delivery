@@ -1,8 +1,22 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { PrismaService } from '../prisma/prisma.service';
-import { CreateCoffeeDto } from './dto/create-coffee.dto';
-import { UpdateCoffeeDto } from './dto/update-coffee.dto';
 
+import { PrismaService } from '../prisma/prisma.service';
+import { CofeeDto  } from './dto/create-coffee.dto';
+import { UpdateCoffeeDto } from './dto/update-coffee.dto';
+import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
+
+
+export const listaCofess: CofeeDto[] = [
+  {
+    nome: "Expresso Tradicional",
+    tipo: "Quente",
+    id: "123",
+    descricao: "Um shot de café espresso puro e encorpado.",
+    preco: "R$ 5,00",
+    tag: ["clássico", "intenso"],
+    image_url : "teste.com",
+    date_create: new Date("2025-05-30T23:27:50.260Z").toISOString()
+  }
+]
 @Injectable()
 export class CoffeesService {
   constructor(private prisma: PrismaService) {}
@@ -37,7 +51,7 @@ export class CoffeesService {
     });
 
     if (!coffee) {
-      throw new NotFoundException(`Coffee with ID ${id} not found`);
+      throw new NotFoundException(`Coffee com ID ${id} not found`);
     }
 
     return {
@@ -45,15 +59,42 @@ export class CoffeesService {
       tags: coffee.tags.map(coffeeTag => coffeeTag.tag),
     };
   }
-
-  async create(createCoffeeDto: CreateCoffeeDto) {
-    // código aqui
-
-    // return this.prisma.coffee.create({data: {}});
+  async create(createCafeDto: CofeeDto): Promise<CofeeDto> {
+    return this.createCofee(createCafeDto); 
+  }
+//criar
+   createCofee(newCofee: CofeeDto): CofeeDto {
+    const idExists = listaCofess.some(cofee => cofee.id === newCofee.id);
+    if (idExists) {
+      throw new ConflictException(`Café com ID "${newCofee.id}" já existe.`);
+    }
+    listaCofess.push(newCofee);
+    return newCofee;}
+//remover
+  async remove(id: string): Promise<void> {
+    const index = listaCofess.findIndex(coffee => coffee.id === id);
+    if (index === -1) {
+      throw new NotFoundException(`Café com ID "${id}" não encontrado.`);
+    }
+    listaCofess.splice(index, 1);
   }
 
+  async removeTag(tagId: string): Promise<void> {
+  
+    throw new Error('Operação de remoção de tag não suportada.');
+  }
+ 
+
   async update(id: string, updateCoffeeDto: UpdateCoffeeDto) {
-    // código de implementação aqui
+    const existingCoffee = await this.prisma.coffee.findUnique({
+      where: { id },
+    });
+
+    if (!existingCoffee) {
+      throw new NotFoundException(`Coffee with ID "${id}" not found.`);
+    }
+
+    const { tag, ...coffeeData } = updateCoffeeDto;
 
     // Atualizar os dados do café
     return this.prisma.coffee.update({
@@ -69,11 +110,6 @@ export class CoffeesService {
     });
   }
 
-  async remove(id: string) {
-    //  1 - Verificar se o café existe
-
-    // 2 - Remover o café
-  }
 
   async searchCoffees(params: {
     start_date?: Date;
@@ -106,4 +142,4 @@ export class CoffeesService {
       },
     };
   }
-} 
+}

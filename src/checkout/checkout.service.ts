@@ -2,7 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CartService } from '../cart/cart.service';
 import { CheckoutDto } from './dto/checkout.dto';
-
+import { CofeeDto } from 'src/coffees/dto/create-coffee.dto'
 @Injectable()
 export class CheckoutService {
   constructor(
@@ -16,7 +16,7 @@ export class CheckoutService {
     // Obter o carrinho com itens e cálculos
     const cart = await this.cartService.getCart(cartId);
 
-    // Criar o pedido
+  
     const order = await this.prisma.order.create({
       data: {
         cart: { connect: { id: cartId } },
