@@ -7,7 +7,7 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model Coffee {
+model Coffee {s
   id          String      @id @default(uuid())
   name        String
   description String

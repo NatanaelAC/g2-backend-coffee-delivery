@@ -16,7 +16,8 @@ export class CheckoutService {
     // Obter o carrinho com itens e cálculos
     const cart = await this.cartService.getCart(cartId);
 
-  
+ 
+      
     const order = await this.prisma.order.create({
       data: {
         cart: { connect: { id: cartId } },
